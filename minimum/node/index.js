@@ -11,11 +11,6 @@ class Activity {
         return JSON.stringify(this.jsonProps)
     }
 }
-class Outbox extends Activity {
-    constructor(preferredUsername) {
-
-    }
-}
 class Actor extends Activity {
     constructor(preferredUsername,type,{name,summary,icon}) {
         super()
@@ -37,7 +32,7 @@ class Actor extends Activity {
         for (let collection of ["following","followers","liked","inbox","outbox"]) {
             let colId = id + "/" + collection
             add[collection] = colId
-            this[collection] = Activity()
+            this[collection] = new Activity()
             this[collection].add({colId})
         }
         this.add(add)
