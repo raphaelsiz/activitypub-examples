@@ -1,5 +1,8 @@
 const { generateKeyPair } = require('crypto');
-require("dotenv").config()
+const express = require('express');
+require("dotenv").config();
+const app = express();
+
 class Activity {
     constructor() {
         this.jsonProps={"@context" : ["https://www.w3.org/ns/activitystreams",
@@ -14,7 +17,7 @@ class Activity {
     }
 }
 class Actor extends Activity {
-    constructor(preferredUsername,type,{name,summary,icon}) {
+    constructor(preferredUsername,type,{name,summary,icon}={}) {
         super()
         let id = process.env.DOMAIN + "/u/" + preferredUsername;
         let add = {preferredUsername,id,name,summary,icon};
@@ -63,5 +66,29 @@ class Actor extends Activity {
     }
 }
 
-let a = new Actor("mergerg");
+let a = new Actor("mergerg","person");
 console.log(a.json())
+
+app.get('/.well-known/webfinger',(req,res)=>{
+    console.log(req.query)
+    if (!req.query.resource) return res.status(404);
+    //if (true) //check if req.params.resource is a valid account
+    console.log(req.query.resource)
+    res.json({
+        "subject": req.query.resource,
+	    "links": [
+	        {
+			    "rel": "self",
+			    "type": "application/activity+json",
+			    "href": `${process.env.DOMAIN}/u/${req.query.resource.slice(5)}`
+		    }
+	    ]
+    })
+})
+app.get('/u/:actor',(req,res)=>{
+    console.log(req.params.actor)
+    let actor = new Actor(req.params.actor,"person")
+    res.json(actor.json())
+})
+
+app.listen(process.env.PORT || 2222)
