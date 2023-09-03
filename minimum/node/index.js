@@ -1,7 +1,9 @@
+const { generateKeyPair } = require('crypto');
 require("dotenv").config()
 class Activity {
     constructor() {
-        this.jsonProps={"@context" : ["https://www.w3.org/ns/activitystreams"]}
+        this.jsonProps={"@context" : ["https://www.w3.org/ns/activitystreams",
+		"https://w3id.org/security/v1"]}
     }
     add(props) {
         for (let prop in props)
@@ -36,6 +38,28 @@ class Actor extends Activity {
             this[collection].add({colId})
         }
         this.add(add)
+        generateKeyPair('rsa', {
+            modulusLength: 4096,
+            publicKeyEncoding: {
+              type: 'spki',
+              format: 'pem'
+            },
+            privateKeyEncoding: {
+              type: 'pkcs8',
+              format: 'pem',
+              cipher: 'aes-256-cbc',
+              passphrase: process.env.KEY_SECRET
+            }
+          }, (err, publicKey, privateKey) => {
+            this.keys=[publicKey,privateKey]
+            this.add({
+                publicKey: {
+                    id: id + "#public-key",
+                    owner: id,
+                    publicKeyPem: publicKey
+                }
+            })
+          });
     }
 }
 
